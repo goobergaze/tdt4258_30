@@ -108,7 +108,7 @@ _reset:
 	str r3, [r0, #GPIO_CTRL]
 	ldr r3, =#0x55555555
 	str r3, [r0, #GPIO_MODEH]
-	ldr r3, =#0xff00
+	ldr r3, =#0xfeff
 	str r3, [r0, #GPIO_DOUT]
 
 	// Port C setup (buttons)
@@ -148,12 +148,23 @@ gpio_handler:
 	ldr r3, [r2, #GPIO_IF]
 	str r3, [r2, #GPIO_IFC]
 
-	// Test
+	//Test
 	ldr r3, [r1, #GPIO_DIN]
 	ldr r4, =#0xff
 	and r3, r3, r4
-	lsl r3, r3, #8
-	str r3, [r0, #GPIO_DOUT]
+
+	ldr r5, [r0, #GPIO_DOUT]
+
+	cmp r5, #0x7f
+	it ne
+	cmpne r3, #0xfb
+	it eq
+	lsleq r5, r5, #1
+
+
+	str r5, [r0, #GPIO_DOUT]
+
+
 
 	bx lr // Return
 
