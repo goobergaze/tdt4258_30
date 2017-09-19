@@ -46,14 +46,11 @@
 
         CMU_HFPERCLKDIV = 0x008
         CMU_HFPERCLKEN0 = 0x044
-        CMU_LFCLKSEL = 0x028
 
         CMU_HFPERCLKEN0_GPIO = 13
 
 	      //////////////////////////////////////////////////////////////////////
 	      // NVIC
-
-        ACTLR = 0xe000e008
 
         ISER0 = 0xe000e100
         ISER1 = 0xe000e104
@@ -77,18 +74,9 @@
 	      EMU_BASE = 0x400c6000
 
         EMU_CTRL = 0x000
-        EMU_MEMCTRL = 0x004
 
 	      //////////////////////////////////////////////////////////////////////
         // System Control Block
 
         SCR = 0xe000ed10
-		
 
-		
-	      //////////////////////////////////////////////////////////////////////
-        // Memory System Controller
-		
-		MSC_BASE = 0x400c0000
-
-		MSC_READCTRL = 0x004
