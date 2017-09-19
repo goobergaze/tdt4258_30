@@ -83,24 +83,6 @@
         .thumb_func
 _reset:
 
-	/***************** Energy saving setup *****************/
-
-	// Set zero wait-state access with SCBTP
-	ldr r0, =#(MSC_BASE + MSC_READCTRL)
-	ldr r1, =#0b10
-	str r1, [r0]
-
-	// Disable if-then folding
-	ldr r0, =#ACTLR
-	ldr r1, =#0b100
-	str r1, [r0]
-
-	// Power off RAM blocks
-	ldr r0, =#(EMU_BASE + EMU_MEMCTRL)
-	ldr r1, =#0b111
-	str r1, [r0]
-
-
 	/****************** Init values setup ******************/
 
 	// Dedicated button state register
@@ -137,21 +119,7 @@ _reset:
 	ldr r4, =#0xff
 	str r4, [r1, #GPIO_DOUT]
 
-	// GPIO interrupt setup
-	ldr r4, =#0x22222222
-	str r4, [r2, #GPIO_EXTIPSELL]
-	ldr r4, =#0xff
-	str r4, [r2, #GPIO_EXTIFALL]
-	str r4, [r2, #GPIO_EXTIRISE]
-	str r4, [r2, #GPIO_IEN]
-
-	// Enable interrupts
-	ldr r5, =#ISER0
-	ldr r4, =#0x802
-	str r4, [r5]
-
-	// Enter sleep mode
-	wfi
+	b gpio_loop
 
 
 gpio_loop:
