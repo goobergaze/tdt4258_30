@@ -11,7 +11,7 @@ ex1.bin : ex1.elf
 	${OBJCOPY} -j .text -O binary $< $@
 
 ex1.elf : ex1.o 
-	${LD} -T ${LINKERSCRIPT} $^ -g -o $@ ${LDFLAGS} 
+	${LD} -T ${LINKERSCRIPT} $^ -o $@ ${LDFLAGS} 
 
 ex1.o : ex1.s
 	${AS} ${ASFLAGS} $< -o $@
