@@ -20,4 +20,8 @@ void setupTimer(uint16_t period)
 	 * cycles. Remember to configure the NVIC as well, otherwise the
 	 * interrupt handler will not be invoked. 
 	 */
+	CMU_HFPERCLKEN0 |= 1<<6;
+	TIMER1_TOP = period;
+	TIMER1_IEN = 1;
+	TIMER1_CMD = 1;
 }
