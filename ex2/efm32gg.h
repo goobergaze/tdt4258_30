@@ -51,6 +51,7 @@
 #define CMU_HFCORECLKEN0 ((volatile uint32_t*)(CMU_BASE2 + 0x040))
 #define CMU_HFPERCLKEN0  ((volatile uint32_t*)(CMU_BASE2 + 0x044))
 #define CMU_CMD          ((volatile uint32_t*)(CMU_BASE2 + 0x024))
+#define CMU_LFCLKSEL     ((volatile uint32_t*)(CMU_BASE2 + 0x028))
 
 #define CMU2_HFPERCLKEN0_DAC0   (1 << 17)
 #define CMU2_HFPERCLKEN0_PRS    (1 << 15)
@@ -140,3 +141,9 @@
 #define SCR          ((volatile uint32_t*)0xe000ed10)
 #define SYSTICK_CTRL ((volatile uint32_t*)0xe000e010)
 #define SYSTICK_LOAD ((volatile uint32_t*)0xe000e014)
+
+// Memory System Controller
+
+#define MSC_BASE 0x400c0000
+
+#define MSC_READCTRL ((volatile uint32_t*)(DMA_BASE + 0x004))
