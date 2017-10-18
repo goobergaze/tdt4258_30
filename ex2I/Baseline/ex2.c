@@ -21,7 +21,7 @@ int main()
 	/* Call the peripheral setup functions */
 	setupGPIO();
 	setupDAC();
-	//setupTimer(SAMPLE_PERIOD);
+	setupTimer(SAMPLE_PERIOD);
 
 	/* Play the startup jingle */
 	extern const uint32_t *jingle[3];
@@ -42,7 +42,7 @@ while(1)
 
 	if(*TIMER1_CNT == *TIMER1_TOP)
 	{
-		timerStart();
+		soundTick();
 	}
 	else
 	{
