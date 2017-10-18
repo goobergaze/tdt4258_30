@@ -19,7 +19,6 @@ int main(){
 	// Call the peripheral setup functions 
 	setupGPIO();
 	setupDAC();
-	setupNVIC();
 	setupTimer(SAMPLE_PERIOD);
 	
 
@@ -27,12 +26,15 @@ int main(){
 	extern const uint32_t *jingle[3];
 	soundPlay(jingle[0], jingle[1], jingle[2], 0);
 
-	while(1){
-
-		if(*TIMER1_CNT == *TIMER1_TOP){
+	uint32_t previousTime = 0;
+	while(1)
+	{
+		/* Check counter overflow instead of comparing value directly */
+		if(*TIMER1_CNT < previousTime)
+		{
 			soundTick();
 		}
-
+		previousTime = *TIMER1_CNT;
 	}
 	return 0;
 }
