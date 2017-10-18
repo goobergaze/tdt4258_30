@@ -10,6 +10,7 @@ void setupGPIO();
 
 void soundPlay();
 void soundTick();
+void buttonRoutine();
 
 
 int main(){
