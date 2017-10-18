@@ -8,80 +8,40 @@ void setupTimer(uint32_t period);
 void setupDAC();
 void setupGPIO();
 void setupNVIC();
-void setupEnergyOptimizations();
+
 
 void soundPlay();
+void soundTick();
 
-bool buttonPressed = 0;
 
-int main()
-{
-	setupEnergyOptimizations();
+int main(){
 
-	/* Call the peripheral setup functions */
+	// Call the peripheral setup functions 
 	setupGPIO();
 	setupDAC();
+	setupNVIC();
 	setupTimer(SAMPLE_PERIOD);
+	
 
-	/* Play the startup jingle */
+	// Play the startup jingle 
 	extern const uint32_t *jingle[3];
 	soundPlay(jingle[0], jingle[1], jingle[2], 0);
 
-while(1)
-{
-	if(*GPIO_PC_DIN != EMPTY) /*Checks if a button has been pressed*/
-	{
-		if (!buttonPressed) /*Checks if the button has been pressed before*/
-		{	
-			soundStop();
-			setupDAC();
-			buttonRoutine();
-			buttonPressed = 1;
+	while(1){
+
+		if(*TIMER1_CNT == *TIMER1_TOP){
+			soundTick();
 		}
-	}
 
-	if(*TIMER1_CNT == *TIMER1_TOP)
-	{
-		soundTick();
-	}
-	else
-	{
-		buttonPressed = 0;
 	}
 	return 0;
 }
 
-	/* Enable interrupt handling */
-	setupNVIC();
-
-	/*
-	 * TODO for higher energy efficiency, sleep while waiting for
-	 * interrupts instead of infinite loop for busy-waiting 
-	 */
-
-	/* Enter sleep mode */
-	__asm("wfi");
-
-	return 0;
-}
-
-void setupNVIC()
-{
-	/* Enable TIMER1, GPIO odd and GPIO even interrupt handling */
+void setupNVIC(){
+	// Enable TIMER1, GPIO odd and GPIO even interrupt handling 
 	*ISER0 = 0b1100000000010;
 }
 
-void setupEnergyOptimizations()
-{
-	/* Set zero wait-state access with SCBTP, disable instruction cache */
-	*MSC_READCTRL = 0b1101010;
-
-	/* Disable low frequency clocks or something */
-	*CMU_LFCLKSEL = 0;
-
-	/* Configure EM1 on sleep mode & sleep on exit */
-	*SCR = 0b10;
-}
 
 /*
  * if other interrupt handlers are needed, use the following names:
