@@ -5,18 +5,20 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
-#include <efm32gg.h>
 #include <linux/ioport.h>
 #include <linux/fs.h>
 #include <linux/interrupt.h>
 #include <linux/cdev.h>
+#include <linux/device.h>
+#include <linux/uaccess.h>
+#include <asm/io.h>
+#include "efm32gg.h"
 
 
-
-int my_open(struct inode*, struct file*);
-int my_release(struct inode*, struct file*);
-ssize_t my_read(struct file*, char* __user, size_t, loff_t*);
-ssize_t my_write(struct file*, char* __user, size_t, loff_t*);
+static int my_open(struct inode*, struct file*);
+static int my_release(struct inode*, struct file*);
+static ssize_t my_read(struct file*, char* __user, size_t, loff_t*);
+static ssize_t my_write(struct file*, const char* __user, size_t, loff_t*);
 
 #define DRIVER_NAME "gamepad"
 #define DEVICE_COUNT 1
@@ -38,7 +40,7 @@ static struct file_operations my_fops = {
 
 
 /*
- * driver_init - function to insert this module into kernel space
+ * my_driver_init - function to insert this module into kernel space
  *
  * This is the first of two exported functions to handle inserting this
  * code into a running kernel
@@ -46,7 +48,7 @@ static struct file_operations my_fops = {
  * Returns 0 if successfull, otherwise -1
  */
 
-static int __init driver_init(void)
+static int __init my_driver_init(void)
 {
 	printk(KERN_INFO "Initializing the gamepad driver...\n");
 
@@ -110,9 +112,11 @@ static int my_release(struct inode *inode, struct file *filp){
 }
 
 static ssize_t my_read(struct file *filp, char __user *buff, size_t count, loff_t *offp){
+	uint32_t button_status;
+
 	printk(KERN_INFO "Reading button status...\n");
-	uint32_t button_status = ioread32(GPIO_PC_DIN);
- 
+	button_status = ioread32(GPIO_PC_DIN);
+
 
     if (count == 0) {
 		return -EINVAL;
@@ -126,20 +130,20 @@ static ssize_t my_read(struct file *filp, char __user *buff, size_t count, loff_
     return 1;
 }
 
-static ssize_t my_write(struct file *filp, const char --user *buff, size_t count, loff_t *offp){
-	printk(KERN_INFO "Writing to buttons is not allowed.\n")
+static ssize_t my_write(struct file *filp, const char __user *buff, size_t count, loff_t *offp){
+	printk(KERN_INFO "Writing to buttons is not allowed.\n");
 	return 1;
 }
 
 
 /*
- * driver_cleanup - function to cleanup this module from kernel space
+ * my_driver_cleanup - function to cleanup this module from kernel space
  *
  * This is the second of two exported functions to handle cleanup this
  * code from a running kernel
  */
 
-static void __exit driver_cleanup(void)
+static void __exit my_driver_cleanup(void)
 {
 	 printk(KERN_INFO "Cleaning up the gamepad driver...\n");
 
@@ -158,8 +162,8 @@ static void __exit driver_cleanup(void)
 	unregister_chrdev_region(device_number, DEVICE_COUNT);
 }
 
-module_init(driver_init);
-module_exit(driver_cleanup);
+module_init(my_driver_init);
+module_exit(my_driver_cleanup);
 
 MODULE_DESCRIPTION("Device driver for the gamepad.");
 MODULE_LICENSE("GPL");
