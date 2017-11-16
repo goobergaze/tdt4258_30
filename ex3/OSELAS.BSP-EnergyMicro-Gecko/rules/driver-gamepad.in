@@ -1,8 +1,0 @@
-## SECTION=project_specific
-
-config DRIVER_GAMEPAD
-	tristate
-	select KERNEL
-	prompt "driver-gamepad"
-	help
-	  FIXME
