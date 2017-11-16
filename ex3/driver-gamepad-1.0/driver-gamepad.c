@@ -112,7 +112,17 @@ static int my_release(struct inode *inode, struct file *filp){
 static ssize_t my_read(struct file *filp, char __user *buff, size_t count, loff_t *offp){
 	printk(KERN_INFO "Reading button status...\n");
 	uint32_t button_status = ioread32(GPIO_PC_DIN);
-    copy_to_user(buff, &button_status, 1);
+ 
+
+    if (count == 0) {
+		return -EINVAL;
+    }
+
+	if(count > 8 || count < 0){
+		return -EFAULT;
+	}
+
+	copy_to_user(buff, &button_status, 1);
     return 1;
 }
 
