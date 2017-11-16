@@ -1,0 +1,5 @@
+kernel/lib/bitrev.ko
+kernel/lib/crc-itu-t.ko
+kernel/lib/crc32.ko
+kernel/lib/crc7.ko
+kernel/lib/fonts/font.ko

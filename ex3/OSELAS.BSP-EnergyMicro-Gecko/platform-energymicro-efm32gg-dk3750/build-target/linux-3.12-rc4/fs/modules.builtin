@@ -1,0 +1,3 @@
+kernel/fs/binfmt_script.ko
+kernel/fs/ext2/ext2.ko
+kernel/fs/romfs/romfs.ko
