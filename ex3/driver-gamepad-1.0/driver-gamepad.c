@@ -11,6 +11,8 @@
 #include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/uaccess.h>
+#include <linux/signal.h>
+#include <linux/poll.h>
 #include <asm/io.h>
 #include "efm32gg.h"
 
@@ -19,6 +21,8 @@ static int my_open(struct inode*, struct file*);
 static int my_release(struct inode*, struct file*);
 static ssize_t my_read(struct file*, char* __user, size_t, loff_t*);
 static ssize_t my_write(struct file*, const char* __user, size_t, loff_t*);
+static int my_fasync(int, struct file*, int);
+irqreturn_t gpio_irq_handler(int, void*);
 
 #define DRIVER_NAME "gamepad"
 #define DEVICE_COUNT 1
@@ -35,8 +39,13 @@ static struct file_operations my_fops = {
 	.read = my_read,
 	.write = my_write,
 	.open = my_open,
-	.release = my_release
+	.release = my_release,
+	.fasync = my_fasync
 };
+
+static struct fasync_struct *async_queue;
+
+static uint32_t button_status = 0;
 
 
 /*
@@ -81,9 +90,10 @@ static int __init my_driver_init(void)
     iowrite32(0xFF, GPIO_PC_DOUT);
 
     iowrite32(0x22222222, GPIO_EXTIPSELL);
-    //Mer interrupt setup
 
-
+	// Setting up interrupt handlers
+	request_irq(IRQ_GPIO_EVEN, gpio_irq_handler, 0, DRIVER_NAME, NULL);
+	request_irq(IRQ_GPIO_ODD,  gpio_irq_handler, 0, DRIVER_NAME, NULL);
 
     // Initializing char device structure
     cdev_init(&my_cdev, &my_fops);
@@ -108,6 +118,10 @@ static int my_open(struct inode *inode, struct file *filp){
 
 static int my_release(struct inode *inode, struct file *filp){
 	printk(KERN_INFO "Closing driverfile...\n");
+
+	// Removing the parent process from async_queue
+	my_fasync(-1, filp, 0);
+
 	return 0;
 }
 
@@ -135,6 +149,24 @@ static ssize_t my_write(struct file *filp, const char __user *buff, size_t count
 	return 1;
 }
 
+// Functions related to interrupts
+
+static int my_fasync(int fd, struct file *filp, int mode)
+{
+	return fasync_helper(fd, filp, mode, &async_queue);
+}
+
+irqreturn_t gpio_irq_handler(int irq, void *dev_id)
+{
+	// Copy the GPIO register value to driver memory
+	button_status = ioread32(GPIO_PC_DIN);
+
+	// Issue a signal to the user processes
+	kill_fasync(&async_queue, SIGIO, POLLIN | POLLRDNORM);
+
+	return IRQ_HANDLED;
+}
+
 
 /*
  * my_driver_cleanup - function to cleanup this module from kernel space
@@ -152,6 +184,10 @@ static void __exit my_driver_cleanup(void)
 	// Releasing I/O memory regions
 	release_mem_region(GPIO_PC_BASE, 0x24);
 	release_mem_region(GPIO_PA_BASE + 0x100, 0x20);
+
+	// Releasing interrupt handlers
+	free_irq(IRQ_GPIO_EVEN, NULL);
+	free_irq(IRQ_GPIO_ODD,  NULL);
 
 	// Removing device from user space
 	device_destroy(cl, device_number);
