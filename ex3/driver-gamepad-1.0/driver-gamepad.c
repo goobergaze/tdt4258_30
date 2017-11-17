@@ -126,11 +126,7 @@ static int my_release(struct inode *inode, struct file *filp){
 }
 
 static ssize_t my_read(struct file *filp, char __user *buff, size_t count, loff_t *offp){
-	uint32_t button_status;
-
 	printk(KERN_INFO "Reading button status...\n");
-	button_status = ioread32(GPIO_PC_DIN);
-
 
     if (count == 0) {
 		return -EINVAL;
