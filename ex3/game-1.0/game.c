@@ -6,12 +6,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-int setup_signal_handler(int);
+int setup_signal_handler();
 void button_handler(int);
 void iterate_game(void);
 
-// Framebuffer file descriptor
-int fb0;
+// Driver file descriptors
+int fd_fb0, fd_gamepad;
 
 
 int main(int argc, char *argv[])
@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
 	/****************************** Framebuffer ******************************/
 
 	// Open the framebuffer device
-	fb0 = open("/dev/fb0", 0);
-	if(fb0 == -1)
+	fd_fb0 = open("/dev/fb0", 0);
+	if(fd_fb0 == -1)
 	{
 		puts("Failed to open framebuffer device.");
 		exit(EXIT_FAILURE);
@@ -29,15 +29,15 @@ int main(int argc, char *argv[])
 	/******************************** Gamepad ********************************/
 
 	// Open the gamepad driver with asynchronous signaling
-	int gamepad = open("/dev/gamepad", O_ASYNC);
-	if(gamepad == -1)
+	fd_gamepad = open("/dev/gamepad", O_RDONLY);
+	if(fd_gamepad == -1)
 	{
 		puts("Failed to open gamepad driver.");
 		exit(EXIT_FAILURE);
 	}
 
 	// Enable listening to signals from the gamepad driver
-	if(setup_signal_handler(gamepad) == -1)
+	if(setup_signal_handler() == -1)
 	{
 		exit(EXIT_FAILURE);
 	}
@@ -50,14 +50,14 @@ int main(int argc, char *argv[])
 	}
 
 	// Release the drivers and skedaddle
-	close(fb0);
-	close(gamepad);
+	close(fd_fb0);
+	close(fd_gamepad);
 
 	exit(EXIT_SUCCESS);
 }
 
 
-int setup_signal_handler(int fd)
+int setup_signal_handler()
 {
 	// Indicate that no signal besides SIGIO should be blocked
 	sigset_t empty_mask;
@@ -78,14 +78,14 @@ int setup_signal_handler(int fd)
 	}
 
 	// Specify that this process is the owner of the gamepad driver
-	if(fcntl(fd, F_SETOWN, getpid()) == -1)
+	if(fcntl(fd_gamepad, F_SETOWN, getpid()) == -1)
 	{
 		puts("Failed to specify gamepad driver owner.");
 		return -1;
 	}
 
 	// Set the FASYNC flag so that this process can receive notifications
-	if(fcntl(fd, F_SETFL, FASYNC | fcntl(STDIN_FILENO, F_GETFL)) == -1)
+	if(fcntl(fd_gamepad, F_SETFL, FASYNC | fcntl(fd_gamepad, F_GETFL)) == -1)
 	{
 		puts("Failed to set FASYNC flag in gamepad driver.");
 		return -1;

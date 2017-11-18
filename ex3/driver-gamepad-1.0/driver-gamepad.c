@@ -45,6 +45,7 @@ static struct file_operations my_fops = {
 
 static struct fasync_struct *async_queue;
 
+static uint32_t open_driver_count = 0;
 static uint32_t button_status = 0;
 
 
@@ -54,7 +55,7 @@ static uint32_t button_status = 0;
  * This is the first of two exported functions to handle inserting this
  * code into a running kernel
  *
- * Returns 0 if successfull, otherwise -1
+ * Returns 0 if successful, otherwise -1
  */
 
 static int __init my_driver_init(void)
@@ -90,10 +91,8 @@ static int __init my_driver_init(void)
     iowrite32(0xFF, GPIO_PC_DOUT);
 
     iowrite32(0x22222222, GPIO_EXTIPSELL);
-
-	// Setting up interrupt handlers
-	request_irq(IRQ_GPIO_EVEN, gpio_irq_handler, 0, DRIVER_NAME, NULL);
-	request_irq(IRQ_GPIO_ODD,  gpio_irq_handler, 0, DRIVER_NAME, NULL);
+	iowrite32(0xFF, GPIO_EXTIFALL);
+	iowrite32(0xFF, GPIO_EXTIRISE);
 
     // Initializing char device structure
     cdev_init(&my_cdev, &my_fops);
@@ -113,14 +112,39 @@ static int __init my_driver_init(void)
 
 static int my_open(struct inode *inode, struct file *filp){
 	printk(KERN_INFO "Opening driverfile...\n");
+
+	// If the driver is opened for the first time, enable interrupts
+	if(open_driver_count == 0)
+	{
+		request_irq(IRQ_GPIO_EVEN, gpio_irq_handler, 0, DRIVER_NAME, NULL);
+		request_irq(IRQ_GPIO_ODD,  gpio_irq_handler, 0, DRIVER_NAME, NULL);
+
+		iowrite32(0xFF, GPIO_IEN);
+	};
+
+	// Keep track of how many driver instances are open
+	open_driver_count++;
+
 	return 0;
 }
 
 static int my_release(struct inode *inode, struct file *filp){
 	printk(KERN_INFO "Closing driverfile...\n");
 
-	// Removing the parent process from async_queue
+	// Remove the parent process from async_queue
 	my_fasync(-1, filp, 0);
+
+	// Keep track of how many driver instances are still open
+	open_driver_count--;
+
+	// If the driver is closed for the final time, disable interrupts
+	if(open_driver_count == 0)
+	{
+		iowrite32(0x00, GPIO_IEN);
+
+		free_irq(IRQ_GPIO_EVEN, NULL);
+		free_irq(IRQ_GPIO_ODD,  NULL);
+	};
 
 	return 0;
 }
@@ -154,8 +178,13 @@ static int my_fasync(int fd, struct file *filp, int mode)
 
 irqreturn_t gpio_irq_handler(int irq, void *dev_id)
 {
-	// Copy the GPIO register value to driver memory
-	button_status = ioread32(GPIO_PC_DIN);
+	printk(KERN_INFO "Handling interrupt...\n");
+
+	// Clear GPIO pending interrupt flag
+	iowrite32(ioread32(GPIO_IF), GPIO_IFC);
+
+	// Read the GPIO register value and store the button data (lowest 8 bits)
+	button_status = ioread32(GPIO_PC_DIN) & 0xFF;
 
 	// Issue a signal to the user processes
 	kill_fasync(&async_queue, SIGIO, POLLIN | POLLRDNORM);
@@ -180,10 +209,6 @@ static void __exit my_driver_cleanup(void)
 	// Releasing I/O memory regions
 	release_mem_region(GPIO_PC_BASE, 0x24);
 	release_mem_region(GPIO_PA_BASE + 0x100, 0x20);
-
-	// Releasing interrupt handlers
-	free_irq(IRQ_GPIO_EVEN, NULL);
-	free_irq(IRQ_GPIO_ODD,  NULL);
 
 	// Removing device from user space
 	device_destroy(cl, device_number);
