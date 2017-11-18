@@ -46,7 +46,7 @@ static struct file_operations my_fops = {
 static struct fasync_struct *async_queue;
 
 static uint32_t open_driver_count = 0;
-static uint32_t button_status = 0;
+static uint8_t button_status = 0xFF;
 
 
 /*
@@ -152,11 +152,12 @@ static int my_release(struct inode *inode, struct file *filp){
 static ssize_t my_read(struct file *filp, char __user *buff, size_t count, loff_t *offp){
 	printk(KERN_INFO "Reading button status...\n");
 
-    if (count == 0) {
+    if (count == 0)
+	{
 		return -EINVAL;
     }
-
-	if(count > 8 || count < 0){
+	else if(count != 1)
+	{
 		return -EFAULT;
 	}
 

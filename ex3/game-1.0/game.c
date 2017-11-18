@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -96,7 +97,9 @@ int setup_signal_handler()
 
 void button_handler(int signo)
 {
-	puts("I felt a button press ( ͡º ͜ʖ ͡º)");
+	uint8_t button_status;
+	read(fd_gamepad, &button_status, 1);
+	printf("Button status: %u\n", button_status);
 }
 
 void iterate_game(void)
