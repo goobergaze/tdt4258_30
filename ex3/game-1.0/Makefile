@@ -1,24 +1,25 @@
-#
-# Simple development makefile
-#
+CC = arm-cortexm3-uclinuxeabi-gcc
+LD = arm-cortexm3-uclinuxeabi-gcc
+OBJCOPY = arm-cortexm3-uclinuxeabi-objcopy
 
-#
-# add more flags here,
-# but don't remove the "+="
-#
-CFLAGS += -O2 -g -Wall #-Wsign-compare -Wfloat-equal -Wformat-security #-Werror
+CFLAGS += -O2 -g -Wall -Wextra -Wno-unused -Wfloat-equal -Wformat-security
 CPPFLAGS +=
 LDFLAGS +=
 
+game: game.o helpers.o splash.o
+	${LD} $^ -o $@ ${LDFLAGS}
+
+splash.o: splash.bin
+	${OBJCOPY} -I binary -O elf32-littlearm -B arm $< $@
+
+%.o: %.c
+	${CC} ${CFLAGS} -c $< -o $@
+
+.PHONY: all clean install
 
 all: game
 
 clean:
-	-rm -f game
+	-rm -f game *.o
 
 install:
-
-
-.PHONY: all install clean
-
-# end of development makefile
