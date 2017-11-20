@@ -179,10 +179,8 @@ static int my_fasync(int fd, struct file *filp, int mode)
 
 irqreturn_t gpio_irq_handler(int irq, void *dev_id)
 {
-	printk(KERN_INFO "Handling interrupt...\n");
-
 	// Clear GPIO pending interrupt flag
-	iowrite32(ioread32(GPIO_IF), GPIO_IFC);
+	iowrite32(0xFF, GPIO_IFC);
 
 	// Read the GPIO register value and store the button data (lowest 8 bits)
 	button_status = ioread32(GPIO_PC_DIN) & 0xFF;

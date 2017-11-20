@@ -2,7 +2,7 @@ CC = arm-cortexm3-uclinuxeabi-gcc
 LD = arm-cortexm3-uclinuxeabi-gcc
 OBJCOPY = arm-cortexm3-uclinuxeabi-objcopy
 
-CFLAGS += -O2 -g -Wall -Wextra -Wno-unused -Wfloat-equal -Wformat-security
+CFLAGS += -O3 -Wall -Wextra -Wno-unused -Wfloat-equal -Wformat-security
 CPPFLAGS +=
 LDFLAGS +=
 
