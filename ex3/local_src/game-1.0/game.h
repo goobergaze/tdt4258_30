@@ -25,8 +25,8 @@
 #define FRAMEBUFFER_SIZE  SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP / 8
 
 // Colour definitions
-#define RED    0x00f8
-#define GREEN  0xe007
+#define RED    0xf800
+#define GREEN  0x07e0
 #define WHITE  0xffff
 
 enum direction {
