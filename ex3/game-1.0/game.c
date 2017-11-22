@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -68,7 +67,7 @@ void draw_element(int x, int y, uint16_t colour);
 int collision(Position pos);
 void move_snake(enum direction dir);
 void exit_success();
-void flush_fb(bool force_redraw);
+void flush_fb();
 void button_handler(int signal);
 int draw_splash_screen(int fd);
 
@@ -148,7 +147,7 @@ void move_snake(enum direction dir){
 	if (collision(temp)){
 		printf("GAME OVER: You crashed and lost! Your score: %d\n", snake.length-2);
 		memset(framebuffer, RED, SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP/8);
-		flush_fb(true);
+		flush_fb();
 		exit_success();
 		
 	}
@@ -164,7 +163,7 @@ void move_snake(enum direction dir){
 		if(snake.length == MAX_LENGTH){
 			printf("You won!\n");
 			memset(framebuffer, GREEN, SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP/8);
-			flush_fb(true);
+			flush_fb();
 			exit_success();
 		}
 		place_food();
@@ -175,7 +174,7 @@ void move_snake(enum direction dir){
 		draw_element(snake.pos[snake.length].x, snake.pos[snake.length].y, WHITE);
 	}
 	draw_element(temp.x, temp.y, snake.col);
-	flush_fb(false);
+	flush_fb();
 };
 
 void exit_success(){
@@ -184,39 +183,17 @@ void exit_success(){
 	exit(EXIT_SUCCESS);
 };
 
-void flush_fb(bool force_redraw) {
-	if (force_redraw) {
-		// Find minimum region for redrawing snake
-		rect.dx = rect.width = SCREEN_WIDTH/2;
-		rect.dy = rect.height = SCREEN_HEIGHT/2;
-
-		uint8_t i;
-		for(i = 0; i < snake.length; i++) {
-			if(snake.pos[i].x * ELEM_PIXELS > rect.dx)
-				rect.dx = snake.pos[i].x * ELEM_PIXELS;
-
-			if(snake.pos[i].y * ELEM_PIXELS > rect.dy)
-				rect.dy = snake.pos[i].y * ELEM_PIXELS;
-
-			if((snake.pos[i].x + 1) * ELEM_PIXELS - rect.dx < rect.width)
-				rect.width = (snake.pos[i].x + 1) * ELEM_PIXELS - rect.dx;
-
-			if((snake.pos[i].y + 1) * ELEM_PIXELS - rect.dy < rect.height)
-				rect.height = (snake.pos[i].y + 1) * ELEM_PIXELS - rect.dy;
-		}
-	} else {
-		// Redraw the whole screen
-		rect.dx = 0;
-		rect.dy = 0;
-		rect.width = SCREEN_WIDTH;
-		rect.height = SCREEN_HEIGHT;
-	}
-
+void flush_fb() {
 	ioctl(fbfd, 0x4680, &rect);
 };
 
 int main(int argc, char *argv[])
 {
+
+	rect.dx = 0;
+	rect.dy = 0;
+	rect.width = SCREEN_WIDTH;
+	rect.height = SCREEN_HEIGHT;
 	fbfd = open("/dev/fb0", O_RDWR);
 	if(fbfd == -1) {
 		printf("Error when trying to open framebuffer\n)");
@@ -267,7 +244,7 @@ int main(int argc, char *argv[])
 	memset(framebuffer, WHITE, SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP/8);
 	draw_element(snake.pos[0].x, snake.pos[0].y, snake.col);
 	place_food();
-	flush_fb(true);
+	flush_fb();
 
 	while(1){
 		move_snake(snake.dir);
@@ -302,7 +279,7 @@ void button_handler(int signal) {
 				break;
 		}
 
-		//if(input) flush_fb();
+		if(input) flush_fb();
 		
 	} else{
 		printf("Failed to read input from buttons\n");
