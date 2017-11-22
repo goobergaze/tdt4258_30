@@ -2,8 +2,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
-
-#define FRAMEBUFFER_SIZE 320 * 240 * 2 // Resolution * bytes per pixel
+#include "game.h"
 
 void button_handler(int);
 
@@ -15,15 +14,13 @@ extern unsigned char _binary_splash_bin_end;
 int draw_splash_screen(int fd)
 {
 	// '_binary_splash_bin_size' does not work, probably because OS prevents it
-	if(&_binary_splash_bin_end - &_binary_splash_bin_start != FRAMEBUFFER_SIZE)
-	{
+	if (&_binary_splash_bin_end - &_binary_splash_bin_start != FRAMEBUFFER_SIZE) {
 		puts("Splash graphic size does not match framebuffer size.");
 		return -1;
 	}
 
 	// Feed the image data to the framebuffer
-	if(write(fd, &_binary_splash_bin_start, FRAMEBUFFER_SIZE) == -1)
-	{
+	if (write(fd, &_binary_splash_bin_start, FRAMEBUFFER_SIZE) == -1) {
 		puts("Failed to draw splash screen.");
 		return -1;
 	}
@@ -38,29 +35,25 @@ int setup_signal_handler(int fd)
 	sigemptyset(&empty_mask);
 
 	// Define the action for receiving a signal from the gamepad driver
-	const struct sigaction act =
-	{
+	const struct sigaction act = {
 		.sa_handler = button_handler,
 		.sa_mask = empty_mask
 	};
 
 	// Enable the button handler using the action object
-	if(sigaction(SIGIO, &act, NULL) == -1)
-	{
+	if (sigaction(SIGIO, &act, NULL) == -1) {
 		puts("Failed to install signal-catching function.");
 		return -1;
 	}
 
 	// Specify that this process is the owner of the gamepad driver
-	if(fcntl(fd, F_SETOWN, getpid()) == -1)
-	{
+	if (fcntl(fd, F_SETOWN, getpid()) == -1) {
 		puts("Failed to specify gamepad driver owner.");
 		return -1;
 	}
 
 	// Set the FASYNC flag so that this process can receive notifications
-	if(fcntl(fd, F_SETFL, FASYNC | fcntl(fd, F_GETFL)) == -1)
-	{
+	if (fcntl(fd, F_SETFL, FASYNC | fcntl(fd, F_GETFL)) == -1) {
 		puts("Failed to set FASYNC flag in gamepad driver.");
 		return -1;
 	}

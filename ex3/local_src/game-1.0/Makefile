@@ -6,7 +6,7 @@ CFLAGS += -O3 -Wall -Wextra -Wno-unused -Wfloat-equal -Wformat-security
 CPPFLAGS +=
 LDFLAGS +=
 
-game: game.o helpers.o splash.o
+game: game.o setup.o snake.o splash.o
 	${LD} $^ -o $@ ${LDFLAGS}
 
 splash.o: splash.bin
