@@ -10,7 +10,6 @@
 #include <sys/mman.h>
 #include <time.h>
 
-
 // Screen definitions
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
@@ -20,7 +19,7 @@
 #define ELEM_PIXELS 8
 #define ELEMS_X (SCREEN_WIDTH/ELEM_PIXELS)   //40
 #define ELEMS_Y (SCREEN_HEIGHT/ELEM_PIXELS)  //30
-#define MAX_LENGTH 10
+#define MAX_LENGTH 100
 
 // Colour definitions
 const uint16_t RED = 0xf800;
@@ -45,6 +44,7 @@ typedef struct {
 	enum direction dir;
 	uint16_t col;
 	uint8_t length;
+	int speed;
 }Snake;
 
 typedef struct {
@@ -69,40 +69,20 @@ void move_snake(enum direction dir);
 void exit_success();
 void flush_fb();
 void button_handler(int signal);
-void delay(int milliseconds);
+int draw_splash_screen(int fd);
 
-void delay(int milliseconds)
-{
-    long pause;
-    clock_t now,then;
-
-    pause = milliseconds*(CLOCKS_PER_SEC/1000);
-    now = then = clock();
-    while( (now-then) < pause )
-        now = clock();
-}
 
 void init_snakegame(){
 	snake.col = GREEN;
 	snake.pos[0].x = ELEMS_X/2;
-	snake.pos[0].y = ELEMS_Y;
+	snake.pos[0].y = ELEMS_Y/2;
 	snake.dir = UP;
-	snake.length = 1;
+	snake.length = 2;
+	snake.speed = 250*1000;
 
     food.col = RED;
 
-    // Fill background 
-    memset(framebuffer, WHITE, SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP/8);
-   /* for (uint8_t i = 0; i < SCREEN_WIDTH; i++){
-		for (uint8_t j = 0; j < SCREEN_HEIGHT; j++) {
-			draw_pixel(i,j, WHITE);
-		}
-	}*/
-
-	draw_element(snake.pos[0].x, snake.pos[0].y, snake.col);
-	place_food();
-
-	flush_fb();
+ 
 }
 
 void place_food(){
@@ -135,7 +115,7 @@ void draw_element(int x, int y, uint16_t colour) {
 }
 
 int collision(Position pos){
-	if(pos.x < 0 || pos.x > ELEMS_X || pos.y < 0 || pos.y > ELEMS_Y) return 1;
+	if(pos.x < 0 || pos.x >= ELEMS_X || pos.y < 0 || pos.y >= ELEMS_Y) return 1;
 	uint8_t i;
 	for( i = 0;i < snake.length;i++) {
 		if(snake.pos[i].x == pos.x && snake.pos[i].y == pos.y) return 1;
@@ -165,7 +145,7 @@ void move_snake(enum direction dir){
 	}
 
 	if (collision(temp)){
-		printf("GAME OVER: You crashed and lost! Your score: %d\n", snake.length-1);
+		printf("GAME OVER: You crashed and lost! Your score: %d\n", snake.length-2);
 		memset(framebuffer, RED, SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP/8);
 		flush_fb();
 		exit_success();
@@ -187,6 +167,9 @@ void move_snake(enum direction dir){
 			exit_success();
 		}
 		place_food();
+		if(snake.speed > 10*1000){
+			snake.speed -= 35*1000;
+		}
 	}else{
 		draw_element(snake.pos[snake.length].x, snake.pos[snake.length].y, WHITE);
 	}
@@ -217,12 +200,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	int screensize = SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP/8; 	
-	framebuffer = (uint16_t*) mmap(NULL,screensize,PROT_READ |PROT_WRITE, MAP_SHARED, fbfd, 0);
-	if(framebuffer == MAP_FAILED) {
-		printf("Error when trying to map framebuffer\n");
-		close(fbfd);
-		exit(EXIT_FAILURE);
-	}
+
 
 	gpfd = open("/dev/gamepad", O_RDWR);
 	if(gpfd == -1) {
@@ -252,17 +230,26 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-
-	printf("SNAKE GAME\n");
-
 	init_snakegame();
+	draw_splash_screen(fbfd);
+	pause();
+
+	framebuffer = (uint16_t*) mmap(NULL,screensize,PROT_READ |PROT_WRITE, MAP_SHARED, fbfd, 0);
+	if(framebuffer == MAP_FAILED) {
+		printf("Error when trying to map framebuffer\n");
+		close(fbfd);
+		exit(EXIT_FAILURE);
+	}
+	//Fill in background
+	memset(framebuffer, WHITE, SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP/8);
+	draw_element(snake.pos[0].x, snake.pos[0].y, snake.col);
+	place_food();
+	flush_fb();
 
 	while(1){
 		move_snake(snake.dir);
-		delay(500);
+		usleep(snake.speed);
 	}
-
- 
 	exit_success();
 
 	return 0; 
