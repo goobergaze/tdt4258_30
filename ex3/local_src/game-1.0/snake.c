@@ -1,17 +1,6 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <linux/fb.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <time.h>
 #include "game.h"
 
-void setup_framebuffer(int);
+int setup_framebuffer(int);
 void init_snakegame(void);
 void place_food(void);
 int collision(Position);
@@ -28,13 +17,16 @@ Food food;
 
 uint16_t *framebuffer;
 
-void setup_framebuffer(int fd)
+int setup_framebuffer(int fd)
 {
 	framebuffer = (uint16_t*) mmap(NULL, FRAMEBUFFER_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
 	if (framebuffer == MAP_FAILED) {
 		printf("Error when trying to map framebuffer\n");
+		return -1;
 	}
+
+	return 0;
 }
 
 void init_snakegame(void)

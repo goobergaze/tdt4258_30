@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include "game.h"
 
 void button_handler(int);

@@ -1,14 +1,3 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <linux/fb.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <time.h>
 #include "game.h"
 
 void exit_success(void);
@@ -16,8 +5,12 @@ void exit_failure(void);
 void flush_fb(void);
 void button_handler(int);
 
+// Setup functions
+int draw_splash_screen(int);
+int setup_signal_handler(int);
+
 // Snake functions
-void setup_framebuffer(int);
+int setup_framebuffer(int);
 void init_snakegame(void);
 void place_food(void);
 int collision(Position);
