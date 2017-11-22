@@ -10,24 +10,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-<<<<<<< HEAD
 
 
 void init_snakegame(int *fbfd){
-=======
-/*void delay(int milliseconds)
-{
-    long pause;
-    clock_t now,then;
-
-    pause = milliseconds*(CLOCKS_PER_SEC/1000);
-    now = then = clock();
-    while( (now-then) < pause )
-        now = clock();
-}*/
-
-void init_snakegame(){
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 	snake.col = GREEN;
 	snake.pos[0].x = ELEMS_X/2;
 	snake.pos[0].y = ELEMS_Y;
@@ -47,11 +32,7 @@ void init_snakegame(){
 	draw_element(snake.pos[0].x, snake.pos[0].y, snake.col);
 	place_food();
 
-<<<<<<< HEAD
 	flush_fb(fbfd);
-=======
-	flush_fb();
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 }
 
 void place_food(){
@@ -92,11 +73,7 @@ int collision(Position pos){
 	return 0;
 };
 
-<<<<<<< HEAD
 void move_snake(enum direction dir, int *fbfd, int *gpfd){
-=======
-void move_snake(enum direction dir){
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 	
 	if (snake.dir == -dir) return;
 	snake.dir = dir;
@@ -120,13 +97,8 @@ void move_snake(enum direction dir){
 	if (collision(temp)){
 		printf("GAME OVER: You crashed and lost! Your score: %d\n", snake.length-1);
 		memset(framebuffer, RED, SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP/8);
-<<<<<<< HEAD
 		flush_fb(fbfd);
 		exit_success(fbfd, gpfd);
-=======
-		flush_fb();
-		exit_success();
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 		
 	}
     uint8_t i;
@@ -141,20 +113,14 @@ void move_snake(enum direction dir){
 		if(snake.length == MAX_LENGTH){
 			printf("You won!\n");
 			memset(framebuffer, GREEN, SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP/8);
-<<<<<<< HEAD
 			flush_fb(fbfd);
 			exit_success(fbfd,gpfd);
-=======
-			flush_fb();
-			exit_success();
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 		}
 		place_food();
 	}else{
 		draw_element(snake.pos[snake.length].x, snake.pos[snake.length].y, WHITE);
 	}
 	draw_element(temp.x, temp.y, snake.col);
-<<<<<<< HEAD
 	flush_fb(fbfd);
 };
 
@@ -172,31 +138,11 @@ void flush_fb(int *fbfd) {
 void button_handler(int signal, int *fbfd, int *gpfd) {
 	char input;
 	if(read(*gpfd, &input, 1) != -1) { 
-=======
-	flush_fb();
-};
-
-void exit_success(){
-	close(fbfd);
-	close(gpfd);
-	exit(EXIT_SUCCESS);
-};
-
-void flush_fb() {
-	ioctl(fbfd, 0x4680, &rect);
-};
-
-
-void button_handler(int signal) {
-	char input;
-	if(read(gpfd, &input, 1) != -1) { 
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 
 
 		switch(input) {
 			case 0b11111110:
 			case 0b11101111:
-<<<<<<< HEAD
 				move_snake(LEFT, fbfd, gpfd);
 				break;
 			case 0b11111101:
@@ -214,31 +160,8 @@ void button_handler(int signal) {
 			
 		}
 		if(input) flush_fb(fbfd);
-=======
-				move_snake(LEFT);
-				break;
-			case 0b11111101:
-			case 0b11011111:
-				move_snake(UP);
-				break;
-			case 0b11111011:
-			case 0b10111111:
-				move_snake(RIGHT);
-				break;
-			case 0b11110111:
-			case 0b01111111:
-				move_snake(DOWN);
-				break;
-			
-		}
-		if(input) flush_fb();
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 		
 	} else{
 		printf("Failed to read input from buttons\n");
 	}
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd

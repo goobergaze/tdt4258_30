@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 #include "snake.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -14,8 +10,6 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <time.h>
-<<<<<<< HEAD
-
 
 int setup_signal_handler(int fd);
 
@@ -24,11 +18,6 @@ int main(int argc, char *argv[])
 	int fbfd = 0;
 	int gpfd = 0;
 
-=======
-
-int main(int argc, char *argv[])
-{
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 	rect.dx = 0;
 	rect.dy = 0;
 	rect.width = SCREEN_WIDTH;
@@ -52,7 +41,6 @@ int main(int argc, char *argv[])
 		close(fbfd);
 		exit(EXIT_FAILURE);
 	}
-<<<<<<< HEAD
 
 	if(setup_signal_handler(gpfd) == -1){
 		exit(EXIT_FAILURE);
@@ -78,52 +66,8 @@ int main(int argc, char *argv[])
 
 	return 0; 
 }
-
  
 	exit_success();
 
-=======
-	if(signal(SIGIO, &button_handler) == SIG_ERR) {
-		printf("Error when trying to create signal handler\n");
-		close(fbfd);
-		close(gpfd);
-		exit(EXIT_FAILURE);
-	}
-	
-	if(fcntl(gpfd, F_SETOWN, getpid()) == -1) {
-		printf("Error when trying to set owner of gamepad device\n");
-		close(fbfd);
-		close(gpfd);
-		exit(EXIT_FAILURE);
-	}
-
-	long flags = fcntl(gpfd, F_GETFL);
-	if(fcntl(gpfd, F_SETFL, flags | FASYNC) == -1) {
-		printf("Error: failed to set FASYNC flag\n");
-		close(fbfd);
-		close(gpfd);
-		exit(EXIT_FAILURE);
-	}
-
-
-	printf("SNAKE GAME\n");
-
-	init_snakegame();
-
-	while(1){
-		move_snake(snake.dir);
-		if(snake.length >= 3){
-			sleep(100);
-		}
-		if(snake.length >= 6){
-			sleep(50);
-		}
-		sleep(50);
-	}
-
- 
-	exit_success();
-
->>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 	return 0; 
 }
