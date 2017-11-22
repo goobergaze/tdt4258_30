@@ -12,9 +12,16 @@
 #define MAX_LENGTH 10
 
 // Colour definitions
+<<<<<<< HEAD
 #define RED 0xf800
 #define GREEN 0X07e0
 #define WHITE 0xffff
+=======
+const uint16_t RED = 0xf800;
+const uint16_t GREEN = 0x07e0;
+const uint16_t WHITE = 0xffff;
+
+>>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 
 
 
@@ -47,15 +54,29 @@ Food food;
 uint16_t *framebuffer;
 
 struct fb_copyarea rect;
+<<<<<<< HEAD
 
 
 //Functions:
 void init_snakegame(int *fbfd);
+=======
+int fbfd = 0, gpfd = 0;
+
+//Functions:
+void init_snakegame();
+>>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
 void place_food();
 void draw_pixel(int x, int y, uint16_t colour);
 void draw_element(int x, int y, uint16_t colour);
 int collision(Position pos);
+<<<<<<< HEAD
 void move_snake(enum direction dir, int *fbfd, int *gpfd);
 void exit_success(int *fbfd, int *gpfd);
 void flush_fb(int *fbfd);
 void button_handler(int signal, int *fbfd, int *gpfd);
+=======
+void move_snake(enum direction dir);
+void exit_success();
+void flush_fb();
+void button_handler(int signal);
+>>>>>>> 23980aa64a4fd9132735cdd0ef964f91bb743ebd
